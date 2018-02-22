@@ -1,0 +1,7 @@
+-to generate keys:
+	keytool -genkey -alias piHome -keyalg RSA -keystore piHomeKey.jks  -keysize 2048 -validity 7300 -sigalg SHA256withRSA --- only need to run this (7300 is 20 year)
+	
+	you need to download the certificate from the web site and add it to the keystore.
+	keytool -import -alias newWebCer -v -trustcacerts -file certificate.cer -keystore piHomeKey.jks
+
+	https://www.sslshopper.com/article-most-common-java-keytool-keystore-commands.html
