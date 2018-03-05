@@ -42,6 +42,12 @@ public class DBConnection {
 	private boolean buildUpdateQuery = false;
 	private boolean addBatchfirstValue = true;
 
+	public String showQuery(){
+		if (pstmt != null){
+			return pstmt.toString();
+		}
+		return "No Query";
+	}
 	/**
 	 * constructor
 	 * ex: DBConnection con = new DBConnection(url, user,pass,driver);
@@ -83,6 +89,7 @@ public class DBConnection {
 	public DBConnection buildAddQuery(String tableName) throws SQLException{
 		this.query = "INSERT INTO " + tableName;
 		buildAddQuery = true;
+		addBatchfirstValue = true;
 		
 		return createSelectQuery(query);
 	}
@@ -210,13 +217,11 @@ public class DBConnection {
 			
 		}
 		delQuery.append(")");
-		
-		System.out.println("delQuery " + delQuery);		
+
 		
 		pstmt = conn.prepareStatement(delQuery.toString());		
 		addParameters();
 		
-		System.out.println("PSTMT: " + pstmt.toString());
 		pstmt.executeUpdate();		
 		
 	}
