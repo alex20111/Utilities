@@ -2,12 +2,5 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/home/alex/thingspeak-java/dist/lib/gson-2.2.4.jar"/>
-	<classpathentry kind="lib" path="/home/alex/jars/commons-codec-1.10.jar"/>
-	<classpathentry kind="lib" path="/home/alex/jars/commons-exec-1.3.jar"/>
-	<classpathentry kind="lib" path="/home/alex/jars/javax.mail.jar"/>
-	<classpathentry kind="lib" path="/home/alex/jars/mysql-connector-java-5.1.26.jar"/>
-	<classpathentry kind="lib" path="/home/alex/jars/zip4j-1.3.2.jar"/>
-	<classpathentry kind="lib" path="/home/alex/jars/log4j-1.2.17.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
