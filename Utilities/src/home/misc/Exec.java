@@ -16,6 +16,7 @@ public class Exec {
 	private CommandLine command;
 	private DefaultExecutor executor;
 	private ExecuteWatchdog watchdog;
+	private boolean quoting = true;
 	
 	private ByteArrayOutputStream successResult;
 	
@@ -41,6 +42,10 @@ public class Exec {
 		}
 		return this;
 	}
+	public Exec handleQuoting(boolean quoting) {
+		this.quoting = quoting;
+		return this;
+	}
 	
 	public Exec addCommand(String cmd){
 		if (command == null){
@@ -48,7 +53,7 @@ public class Exec {
 		}
 		else
 		{
-			command.addArgument(cmd);
+			command.addArgument(cmd, quoting);
 		}
 		
 		return this;
