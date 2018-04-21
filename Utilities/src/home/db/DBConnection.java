@@ -2,6 +2,7 @@ package home.db;
 
 import home.misc.StringUtl;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -144,8 +145,9 @@ public class DBConnection {
 	 * @param columns - the columns name and data type. EX: columns.put("id","INT Primary key");
 	 * @return
 	 * @throws SQLException
+	 * @throws IOException 
 	 */
-	public DBConnection createTable (String tableName, Map<String, String> columns) throws SQLException{
+	public DBConnection createTable (String tableName, List<ColumnType> columns) throws SQLException, IOException{
 		
 		if (tableName != null && tableName.length() > 0){
 			
@@ -156,16 +158,15 @@ public class DBConnection {
 				query = "CREATE TABLE " + tableName + " (";
 				
 				boolean first = true;
-				for(Map.Entry<String, String> column : columns.entrySet()){
-					
+				for(ColumnType ct: columns) {
 					if (first){
-						query += column.getKey() + " " + column.getValue();
+						query += ct.value();
 						first = false;
 					}else{
-						query += " , " + column.getKey() + " " + column.getValue();
+						query += " , " + ct.value();
 					}
 				}
-				
+						
 				query += " ) ";
 				
 				buildStatement(QueryType.SELECT);
