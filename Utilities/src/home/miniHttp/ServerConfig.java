@@ -13,7 +13,6 @@ public class ServerConfig {
 	public File getWebPage(String webPageName){
 		File file = null; 
 		if (externalWebPages.contains(webPageName)){
-			System.out.println("WEeb found");
 			file = new File(rootDir + externalHtmlFolder + File.separator + webPageName);
 			if (file.exists()){
 				return file;

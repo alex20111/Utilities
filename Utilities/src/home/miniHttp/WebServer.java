@@ -17,11 +17,11 @@ public class WebServer extends NanoHTTPD{
 	private Map<String, HttpHandler> handlers = new HashMap<String, HttpHandler>();
 	private ServerConfig serverConfig = new ServerConfig();
 	
-	public WebServer(int port) throws URISyntaxException {
+	public WebServer(int port, File rootDir) throws URISyntaxException {
 		super(port);
-		File fi = new File(WebServer.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-		serverConfig.setRootDir(fi.getParentFile()); 
+		serverConfig.setRootDir(rootDir);
 		System.out.println("rootDir: " + serverConfig.getRootDir());
+
 	} 
 	public void addHandler(String path ,HttpHandler handler) throws IOException{
 		if ( !path.startsWith("/")){
@@ -54,6 +54,11 @@ public class WebServer extends NanoHTTPD{
 		}
 		serverConfig.getExternalWebPages().add(pageName);
 	}
+	public void addRootDir(File rootDir) {
+//		File fi = new File(WebServer.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+		serverConfig.setRootDir(rootDir); 
+		System.out.println("rootDir: " + serverConfig.getRootDir());
+	}
 	public void startServer() throws IOException{
 		if (handlers.isEmpty()){
 			throw new IOException("No handler defined, please define an Handler"); 
@@ -69,6 +74,7 @@ public class WebServer extends NanoHTTPD{
 			String uri = session.getUri();
 			System.out.println(method + "'" + uri + "' ");
 			HttpHandler handler = handlers.get(uri);
+			System.out.println("Handler size: " + handlers);
 			if (handler == null){
 				//try to see if it's not a folder or file
 				if (uri != null && uri.length() > 0){
@@ -81,17 +87,19 @@ public class WebServer extends NanoHTTPD{
 					return Response.newFixedLengthResponse(Status.NOT_FOUND,NanoHTTPD.MIME_HTML, "Error404, invalid request"); 
 				}
 			}
+			
 			resp = handler.handle(session, serverConfig);
 			if (resp == null){
 				return Response.newFixedLengthResponse(Status.NOT_FOUND,NanoHTTPD.MIME_HTML, "Error 404,invalid request");
 			} 
 		}catch(Exception ex){
+			System.out.println("Errorrrorororor");
 			ex.printStackTrace();
 		}
 		return resp;
 	}
 	public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
-		WebServer server = new WebServer(8080);
+		WebServer server = new WebServer(8080, new File("/home/alex/git/Utilities/Utilities"));
 		server.addHandler("/", new GeneralHandler("Here is the root or any text you want to add"));
 		server.addHandler("/arf", new GeneralHandler("no tagain"));
 		server.addFileFolder("css");

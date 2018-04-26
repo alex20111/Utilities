@@ -8,6 +8,10 @@ public class ColumnType {
 	private boolean primaryKey = false;
 	private PkCriteria pkCrit = null;
 			
+	public ColumnType(String name) {
+		this.name = name;
+		this.primaryKey = false;
+	}
 	public ColumnType(String name, boolean primaryKey) {
 		this.name = name;
 		this.primaryKey = primaryKey;
@@ -48,6 +52,9 @@ public class ColumnType {
 		this.type = "BOOLEAN";
 		return this;
 	}
+	/*
+	 * Criteria for the primary key.. needs to be set id the pk is defined
+	 */
 	public ColumnType setPkCriteria(PkCriteria crt) throws IOException{
 		
 		this.pkCrit = crt;

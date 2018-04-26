@@ -14,7 +14,7 @@ public class BootstrapExample {
 	//external html pages _
 	public static String MAIN_PAGE = "main.txt"; 
 	public static void main(String[] args) throws IOException, URISyntaxException {
-		WebServer server = new WebServer(8080);
+		WebServer server = new WebServer(8080,new File( "/home/alex/git/Utilities/Utilities"));
 		server.addHandler("/", new MainPage());
 		server.addFileFolder("css");
 		server.addFileFolder("js"); 

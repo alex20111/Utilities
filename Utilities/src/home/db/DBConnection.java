@@ -443,6 +443,12 @@ public class DBConnection {
 
 		return pstmt.executeUpdate();
 	}
+	public int executeUpdate() throws SQLException{
+
+		buildStatement(QueryType.SELECT);
+
+		return pstmt.executeUpdate();
+	}
 	/**
 	 * Called to add the query information to the database.
 	 * 
@@ -764,12 +770,14 @@ public class DBConnection {
 		//create table
 		//
 		
-//		Map<String, String> columns = new HashMap<String, String>();
-//		columns.put("id", "INT PRIMARY KEY auto_increment");
-//		columns.put("running", "BOOLEAN");
-//		columns.put("stop", "TINYINT");		
+//		List<ColumnType> columns = new ArrayList<ColumnType>();
+//		columns.add(new ColumnType("id", true).setPkCriteria(new PkCriteria().autoIncrement()));
+//		columns.add(new ColumnType("bob", false).Boolean());
+//		columns.add(new ColumnType("bob2", false).Boolean());
+//		columns.add(new ColumnType("bob3", false).Boolean());
+//	
 //		
-//		db.createTable("testTbl", columns);
+//		con.createTable("TBLtest", columns);
 		
 		
 		

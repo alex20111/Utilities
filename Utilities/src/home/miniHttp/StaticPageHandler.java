@@ -9,19 +9,25 @@ import java.util.Map;
 public class StaticPageHandler {
 
 	private StaticPageHandler(){}
-	private static String servingPage = "";
-	private static String servedPageName = "";
+	private static String servingPage = "";//page being served
+	private static String servedPageName = ""; 
 	
+	public static String processPage(File filePath) throws IOException{
+		return processPage(filePath, null);
+	}
 	///This method need the path to the file and the values to be replaced. The values in the text file should be like this %-valuel-% %-value2-%. 7 A
 	public static String processPage(File filePath, Map<String, String> values) throws IOException{
 		String webPage = "";
 		if (filePath.exists() ){
-			if (servedPageName.equals(filePath.getName())){
+			if (!servedPageName.equals(filePath.getName())){ 
+				
 				loadPageFromFile(filePath);
 				servedPageName = filePath.getName();
 				webPage = servingPage;
+				
 			}else{ 
 				webPage = servingPage;
+				System.out.println("no Load page");
 			}
 			if (values != null && !values.isEmpty()){
 				for(Map.Entry<String, String> value : values.entrySet()){
