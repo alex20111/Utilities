@@ -4,7 +4,7 @@ package home.miniHttp;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 
-public class GeneralHandler implements HttpHandler{ 
+public class GeneralHandler extends HttpBase implements HttpHandler{ 
 	
 	private String message = "";
 	public GeneralHandler(String message) {
@@ -12,7 +12,7 @@ public class GeneralHandler implements HttpHandler{
 	}
 	
 	@Override
-	public Response handle(IHTTPSession session, ServerConfig serverConfig) {
+	public Response handle(IHTTPSession session) {
 	 
 		return Response.newFixedLengthResponse(message);
 	} 

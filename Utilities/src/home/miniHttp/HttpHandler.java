@@ -4,5 +4,6 @@ import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 
 public interface HttpHandler{
-	public Response handle(IHTTPSession session, ServerConfig serverConfig);
+	public Response handle(IHTTPSession session);
+	public void setExternalPage(String page);
 } 

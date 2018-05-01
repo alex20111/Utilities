@@ -1,18 +1,22 @@
 package home.miniHttp;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
+/**
+ * Common server configuration for all handler
+ * @author alex
+ *
+ */
 public class ServerConfig {
-
-	private File rootDir = null;
-	private String externalHtmlFolder = "/web";
-	private Set<String> externalWebPages = new HashSet<String>();
 	
-	public File getWebPage(String webPageName){
+	private static File rootDir = null;
+	private static String externalHtmlFolder = "/web";
+	
+	private ServerConfig() {}
+	
+	public static File getExternalWebPage(String webPageName){
 		File file = null; 
-		if (externalWebPages.contains(webPageName)){
+
 			file = new File(rootDir + externalHtmlFolder + File.separator + webPageName);
 			if (file.exists()){
 				return file;
@@ -20,25 +24,23 @@ public class ServerConfig {
 				System.out.println("Error web page file not found");
 				return null;
 			}
-		}
-		return file;
+		
 	}
-	public File getRootDir() {
+
+	public static File getRootDir() {
 		return rootDir;
 	}
-	public void setRootDir(File rootDir) {
-		this.rootDir = rootDir;
+
+	public static void setRootDir(File rootDir) {
+		ServerConfig.rootDir = rootDir;
 	}
-	public String getExternalHtmlFolder() {
+
+	public static String getExternalHtmlFolder() {
 		return externalHtmlFolder;
 	}
-	public void setExternalHtmlFolder(String externalHtmlFolder) {
-		this.externalHtmlFolder = externalHtmlFolder;
+
+	public static void setExternalHtmlFolder(String externalHtmlFolder) {
+		ServerConfig.externalHtmlFolder = externalHtmlFolder;
 	}
-	public Set<String> getExternalWebPages() {
-		return externalWebPages;
-	}
-	public void setExternalWebPages(Set<String> externalWebPages) {
-		this.externalWebPages = externalWebPages;
-	}
+
 }
