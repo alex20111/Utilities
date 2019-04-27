@@ -19,6 +19,7 @@ public class Exec {
 	private boolean quoting = true;
 	
 	private ByteArrayOutputStream successResult;
+	private boolean watchDogTerminated = false;
 	
 	ExecutorService executorService;
 //	private boolean runInBackground = false;
@@ -69,6 +70,7 @@ public class Exec {
 	public int run() throws ExecuteException, IOException{
 
 		int exitValue = -1;
+		watchDogTerminated = false;
 
 		executor = new DefaultExecutor();
 
@@ -88,14 +90,18 @@ public class Exec {
 
 
 		if(watchdog != null && watchdog.killedProcess()){
-			//			exitValue =WATCHDOG_EXIST_VALUE;
 			System.out.println("killed by watchdog");
+			watchDogTerminated = true;
 		}
 		return exitValue;
 
 	}
 	public String getOutput(){
 		return  successResult.toString();
+	}
+	
+	public boolean isWatchDogTerminated() {
+		return watchDogTerminated;
 	}
 	
 }
