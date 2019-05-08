@@ -5,5 +5,4 @@ import org.nanohttpd.protocols.http.response.Response;
 
 public interface HttpHandler{
 	public Response handle(IHTTPSession session);
-	public void setExternalPage(String page);
 } 

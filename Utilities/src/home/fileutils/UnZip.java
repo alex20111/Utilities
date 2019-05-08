@@ -120,8 +120,7 @@ public class UnZip {
 	}  
 	private void processUnzip() throws Exception{
 		int percent = 0;
-		int total = 0;
-		
+		int total = 0;		
 		
 		fireEvent("Starting...",0); 
 		byte[] buffer = new byte[1024];
@@ -137,7 +136,8 @@ public class UnZip {
 		total = f.size();
 		f.close();
 		//get the zip file content
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
+		FileInputStream fis = new FileInputStream(zipFile);
+		ZipInputStream zis = new ZipInputStream(fis);
 		
 		//get the zipped file list entry
 		ZipEntry ze = zis.getNextEntry();
@@ -145,25 +145,31 @@ public class UnZip {
 		while(ze!=null){
 
 			String fileName = ze.getName();
+			
 			File newFile = new File(destFolder + File.separator + fileName);
 			percent ++;
 			fireEvent(newFile.getAbsolutePath(), (percent * 100) / total); 
 			
-			//create all non exists folders
-			//else you will hit FileNotFoundException for compressed folder
-			new File(newFile.getParent()).mkdirs();
+			//create all non exists folders			
+			if (ze.isDirectory()){
+				newFile.mkdirs();				
+			}else{			
+				new File(newFile.getParent()).mkdirs();
+				
+				FileOutputStream fos = new FileOutputStream(newFile);             
 
-			FileOutputStream fos = new FileOutputStream(newFile);             
+				int len;
+				while ((len = zis.read(buffer)) > 0) {
+					fos.write(buffer, 0, len);
+				}
 
-			int len;
-			while ((len = zis.read(buffer)) > 0) {
-				fos.write(buffer, 0, len);
-			}
-
-			fos.close();   
+				fos.close();  
+			}			
+			 
 			ze = zis.getNextEntry();
 		}
 
+		fis.close();
 		zis.closeEntry();
 		zis.close();
 

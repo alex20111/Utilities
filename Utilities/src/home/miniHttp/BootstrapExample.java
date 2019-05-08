@@ -4,18 +4,21 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
+import org.xml.sax.SAXException;
 
 public class BootstrapExample {
 
 	//external html pages _
-	public static String MAIN_PAGE = "main.txt"; 
-	public static void main(String[] args) throws IOException, URISyntaxException {
+	public static void main(String[] args) throws IOException, URISyntaxException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException, ParserConfigurationException, SAXException {
 		WebServer server = new WebServer(8080,new File( "/home/alex/git/Utilities/Utilities"));
-		server.addHandler("/", new MainPage(), MAIN_PAGE);
+		server.addHandler("/", new MainPage());
 		server.addFileFolder("css");
 		server.addFileFolder("js"); 
 		server.addExternalHtmlFolder("web"); //if the html pages are loaded externally. This define the root for html pages
@@ -24,11 +27,14 @@ public class BootstrapExample {
 	}
 }
 class MainPage extends HttpBase implements HttpHandler{
+	
+	public static String MAIN_PAGE = "main.txt"; 
+	
 	@Override 
 	public Response handle(IHTTPSession session) {
 		String webPage = "No";
 		//create main page with values
-		File webPageFile = getWebPage();
+		List<File> webPageFile = getWebPageOnDisk(MAIN_PAGE);
 		
 		if (webPageFile == null){
 			Map<String, String> values = new HashMap<String, String>();
@@ -44,6 +50,18 @@ class MainPage extends HttpBase implements HttpHandler{
 			webPage = "Web page not found";
 		}
 		return Response.newFixedLengthResponse(webPage);
+	}
+
+	@Override
+	public void handleParameters(Map<String, List<String>> params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Response handleRequest() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 } 
 	

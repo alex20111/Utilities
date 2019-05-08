@@ -1,18 +1,23 @@
 package home.miniHttp;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Common server configuration for all handler
  * @author alex
  *
  */
+
 public class ServerConfig {
 	
 	private static File rootDir = null;
 	private static String externalHtmlFolder = "/web";
 	
 	private ServerConfig() {}
+	
+	public static Map<String, List<String>> pagesMap;
 	
 	public static File getExternalWebPage(String webPageName){
 		File file = null; 
@@ -23,8 +28,7 @@ public class ServerConfig {
 			}else{
 				System.out.println("Error web page file not found");
 				return null;
-			}
-		
+			}		
 	}
 
 	public static File getRootDir() {
@@ -42,5 +46,4 @@ public class ServerConfig {
 	public static void setExternalHtmlFolder(String externalHtmlFolder) {
 		ServerConfig.externalHtmlFolder = externalHtmlFolder;
 	}
-
 }

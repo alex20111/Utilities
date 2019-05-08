@@ -19,6 +19,7 @@ public class Exec {
 	private boolean quoting = true;
 	
 	private ByteArrayOutputStream successResult;
+	private String executeExceptionStr = "";
 	private boolean watchDogTerminated = false;
 	
 	ExecutorService executorService;
@@ -85,19 +86,20 @@ public class Exec {
 		try {
 			exitValue =  executor.execute(command);
 		} catch (ExecuteException e) {
+			executeExceptionStr = executeExceptionStr +  " ExecuteException:: " +e.getMessage();
 			exitValue =  e.getExitValue();
 		}
 
 
 		if(watchdog != null && watchdog.killedProcess()){
-			System.out.println("killed by watchdog");
+			executeExceptionStr += "killed by watchdog";
 			watchDogTerminated = true;
 		}
 		return exitValue;
 
 	}
 	public String getOutput(){
-		return  successResult.toString();
+		return  successResult.toString() + "   " + executeExceptionStr;
 	}
 	
 	public boolean isWatchDogTerminated() {
