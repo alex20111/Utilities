@@ -124,16 +124,28 @@ public abstract class HttpBase implements HttpHandler {
 		Map<String, List<String>> params = getParameters();
 
 		if (params.size() > 0){
+			
+			System.out.println("Params : " + params);
 
 			for(Map.Entry<String, String> file : getFiles().entrySet()){
 
+				
 				if (file.getValue() != null && file.getValue().length() > 0){
 					String nameLong = params.get(file.getKey()).get(0);
+//					System.out.println("namelong: " + nameLong);
+					
 					String osSepChar = (nameLong.contains("\\") ? "\\" : "/" );
-					String realName = nameLong.substring(nameLong.lastIndexOf(osSepChar), nameLong.length());
+					String realName = nameLong;
+					if (nameLong.contains(osSepChar)) {
+//						System.out.println("osSepChar: " + osSepChar);
+						realName = nameLong.substring(nameLong.lastIndexOf(osSepChar), nameLong.length());
+					}				
+					
+					
 
-					Path tempFile = Paths.get(nameLong);
+					Path tempFile = Paths.get(file.getValue());
 
+//					System.out.println("File value: " + file.getValue() + " eist: " + Files.exists(tempFile));
 					if (Files.exists(tempFile)){
 
 						if ((pathToDir.lastIndexOf(osSepChar) + 1) != pathToDir.length()){
@@ -141,10 +153,14 @@ public abstract class HttpBase implements HttpHandler {
 							pathToDir += File.separatorChar;
 						}
 						
+//						System.out.println("Path to dir: " + pathToDir);
 						Path newFile = Paths.get(pathToDir  + realName);
 
+//						System.out.println("File exist1 : " + Files.exists(newFile));
 						Files.deleteIfExists(newFile);
 						Files.copy(tempFile, newFile);
+						
+//						System.out.println("File exist: " + Files.exists(newFile));
 
 					}else{
 						throw new IOException("CAN'T FIND FILE");
@@ -171,4 +187,5 @@ public abstract class HttpBase implements HttpHandler {
 		sb.append("</div>");
 		return sb.toString();
 	}
+	
 }
