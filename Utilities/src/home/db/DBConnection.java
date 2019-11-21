@@ -38,7 +38,7 @@ public class DBConnection {
 
 	private Map<String, Object> parameters = null;
 	private Map<String, Object> updateParam = null;
-	
+
 	private boolean buildAddQuery = false; //specify if its the 1st time the addParamenter is used
 	private boolean buildUpdateQuery = false;
 	private boolean addBatchfirstValue = true;
@@ -48,6 +48,32 @@ public class DBConnection {
 			return pstmt.toString();
 		}
 		return "No Query";
+	}
+	/**
+	 * Create a database conntection using the database class.
+	 * 
+	 * example for Un-ecrypted database: 
+	 * 	String url = "jdbc:h2:~/testcon";
+	 *	char[] pass = {'1','2'};
+	 *	Database db = new Database(url,"alloUser",pass, DbClass.H2);
+	 *
+	 *	DBConnection con = new DBConnection(db);
+	 * 
+	 * example for Encrypted database:
+	 *	String url = "jdbc:h2:~/testcon;CIPHER=AES";
+	 *	char[] pass = {'1','2'};
+	 *	char[] filePass = {'1','2'};
+	 *	Database db = new Database(url,"alloUser",pass, DbClass.H2);
+	 *	db.filePassword(filePass);
+	 *
+	 *	DBConnection con = new DBConnection(db);
+	 * 
+	 * @param db - Database class.
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
+	public DBConnection(Database db) throws SQLException, ClassNotFoundException {
+		this.conn = db.build();
 	}
 	/**
 	 * constructor
@@ -61,6 +87,7 @@ public class DBConnection {
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
 	 */
+	@Deprecated
 	public DBConnection(String url, String dbUser, String dbPassword, DbClass dbClass) throws SQLException, ClassNotFoundException  {
 		Class.forName(dbClass.getDriver());
 		this.conn = DriverManager.getConnection(url, dbUser, dbPassword);
@@ -88,11 +115,12 @@ public class DBConnection {
 	 * @throws SQLException
 	 */
 	public DBConnection buildAddQuery(String tableName) throws SQLException{
+		init();
 		this.query = "INSERT INTO " + tableName;
 		buildAddQuery = true;
 		addBatchfirstValue = true;
-		
-		return createSelectQuery(query);
+
+		return selectQuery(query);
 	}
 	/***
 	 * Build the UPDATE query to facilitate the SQL building.
@@ -107,18 +135,19 @@ public class DBConnection {
 	 * @throws SQLException
 	 */
 	public DBConnection buildUpdateQuery(String tableName) throws SQLException{
+		init();
 		this.query = "UPDATE " + tableName;
 		whereStatment = ""; //reset where statement.
 		updateParam = null;
-		
+
 		buildUpdateQuery = true;
-		
-		return createSelectQuery(query);
+
+		return selectQuery(query);
 	}
 	/**
 	 * Create basic query. Basically used as a SELECT or DElete.
 	 * EX: String query = "SELECT * FROM tableName where id > :idKey";
-     *
+	 *
 	 *	ResultSet rs = con.createQuery(query)
 	 *			.setParameter("idKey", 22)
 	 *			.getSelectResultSet();
@@ -128,18 +157,17 @@ public class DBConnection {
 	 * @throws SQLException
 	 */
 	public DBConnection createSelectQuery (String query) throws SQLException{
-
-		if (query != null && query.length() > 0){	
-			parameters = new LinkedHashMap<String, Object>();
-			this.query = query;
-		}
-		else{
-			close();
-			throw new SQLException("Query is empty");
-		}
+		init();
+		selectQuery(query);
 		return this;
 	}
 	/**
+	 * List<ColumnType> columns = new ArrayList<ColumnType>();
+	 * columns.add(new ColumnType(tbl.ID, true).INT().setPKCriteria(new PkCriteria().autoIncrement()));
+	 * columns.add(new ColumnType(tbl.RECORD_DATE, false).TimeStamp());
+	 *
+	 *	con.createTable(tbl.TBL_NM, columns);
+	 * 
 	 * 
 	 * @param tableName - The name of the new table
 	 * @param columns - the columns name and data type. EX: columns.put("id","INT Primary key");
@@ -148,15 +176,16 @@ public class DBConnection {
 	 * @throws IOException 
 	 */
 	public DBConnection createTable (String tableName, List<ColumnType> columns) throws SQLException, IOException{
-		
+
+		init();
 		if (tableName != null && tableName.length() > 0){
-			
+
 			if (columns != null && !columns.isEmpty())
 			{
 				parameters = new LinkedHashMap<String, Object>();
-				
+
 				query = "CREATE TABLE " + tableName + " (";
-				
+
 				boolean first = true;
 				for(ColumnType ct: columns) {
 					if (first){
@@ -166,11 +195,11 @@ public class DBConnection {
 						query += " , " + ct.value();
 					}
 				}
-						
+
 				query += " ) ";
-				
+
 				buildStatement(QueryType.SELECT);
-				
+
 				pstmt.executeUpdate();
 			}
 			else
@@ -178,12 +207,12 @@ public class DBConnection {
 				close();
 				throw new SQLException("You need at least 1 column in the table.");
 			}
-			
+
 		}else{
 			close();
 			throw new SQLException("Table name needed");
 		}
-		
+
 		return this;
 	}
 	/**
@@ -199,11 +228,12 @@ public class DBConnection {
 	 * @throws SQLException 
 	 */
 	public void deleteInBatch(String tableName, String column, List<Object> values) throws SQLException{
-	
+
+		init();
 		StringBuilder delQuery = new StringBuilder("DELETE FROM " + tableName + " WHERE " + column + " IN (");		
-						
+
 		parameters = new LinkedHashMap<String, Object>();
-		
+
 		boolean first = true;
 		for(int i = 0 ; i <  values.size() ; i++){
 			if (first){
@@ -212,21 +242,21 @@ public class DBConnection {
 			}else{
 				delQuery.append(",?");
 			}
-			
+
 			parameters.put("batch" + i, values.get(i));
-				
-			
+
+
 		}
 		delQuery.append(")");
 
-		
+
 		pstmt = conn.prepareStatement(delQuery.toString());		
 		addParameters();
-		
+
 		pstmt.executeUpdate();		
-		
+
 	}
-	
+
 	/**
 	 * Set the parameter to the query
 	 * @param param	- Parameter to add to the query. Must always start with :thentheword 
@@ -248,6 +278,31 @@ public class DBConnection {
 			throw new SQLException("Please create a query");
 		}
 
+		return this;
+	}
+	public boolean verifyIfTableExist(String tableName) throws SQLException{
+		init();
+		selectQuery("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME ='"+tableName+"'");
+		ResultSet rs1 = getSelectResultSet();
+		boolean exist = rs1.next();
+		return exist;
+	}
+	/**
+	 * Internal to the db connection .
+	 * 
+	 * @param query
+	 * @return
+	 * @throws SQLException
+	 */
+	private DBConnection selectQuery (String query) throws SQLException{
+		if (query != null && query.length() > 0){
+			parameters = new LinkedHashMap<String, Object>();
+			this.query = query;
+		}
+		else{
+			close();
+			throw new SQLException("Query is empty");
+		}
 		return this;
 	}
 	/**
@@ -288,7 +343,7 @@ public class DBConnection {
 		//add the parameters.. 
 		addParameters();
 	}
-	
+
 	private void addParameters() throws SQLException{
 		//add param if any
 		if (parameters.size() > 0){
@@ -367,7 +422,7 @@ public class DBConnection {
 			e.printStackTrace();
 			//	        	log.error("DB close error:" + e.getMessage());
 		}			
-		
+
 		//reset all other variables
 		query = "";
 		whereStatment = "";
@@ -376,7 +431,7 @@ public class DBConnection {
 		buildAddQuery = false; //specify if its the 1st time the addParamenter is used
 		buildUpdateQuery = false;
 		addBatchfirstValue = true;
-		
+
 	}
 
 	public ResultSet getSelectResultSet() throws SQLException{
@@ -387,23 +442,29 @@ public class DBConnection {
 
 		return this.rs;		
 	}
+	public int update() throws SQLException{
+		return update("", -1);
+	}
 	/**
 	 * Called to Update the query information to the database.
-	 * 
+	 * @param pkName - Primary key name
+	 * @param pkId - primary key ID
 	 * @return
 	 * @throws SQLException
 	 */
-	public int update() throws SQLException{
-
+	public int update(String pkName, int pkId) throws SQLException{
 		if (!StringUtl.containsIgnoreCase(query, "update")){
 			close();
 			throw new SQLException("Error in QUERY. The UPDATE Method is only used when updating a new record on a table.");
 		}
-
+		if (pkId > 0 && whereStatment.trim().length() == 0){
+			addUpdWhereClause("WHERE "+ pkName + " = :pkAutoId", pkId);
+		}else if (pkId > 0 && whereStatment.trim().length() > 0){
+			throw new SQLException("Error in QUERY.WhereStatment already defined and PkId was provided: " + whereStatment 
+					+ ". pkId: " + pkId);
+		}
 		if (parameters.size() > 0 && buildUpdateQuery){
-
-			StringBuilder tempQuery = new StringBuilder(query);	
-			
+			StringBuilder tempQuery = new StringBuilder(query);
 			boolean first = true;
 			for(String column : parameters.keySet()){
 				if (first){
@@ -414,21 +475,15 @@ public class DBConnection {
 					tempQuery.append( ", " + column + " = " + ":"+column);
 				}
 			}
-
-			tempQuery.append(" " + whereStatment);			
-			
+			tempQuery.append(" " + whereStatment);
 			query = tempQuery.toString();
-			
 			//add the where parameters to the parameters.
 			if (updateParam != null && updateParam.size() > 0){
 				parameters.putAll(updateParam);
-			}			
+			}
 		}
-
 		buildStatement(QueryType.SELECT);
-
 		buildUpdateQuery = false;
-
 		return pstmt.executeUpdate();
 	}
 	/**
@@ -456,18 +511,18 @@ public class DBConnection {
 	 * @throws SQLException
 	 */
 	public int add() throws SQLException{
-		
+
 		if (!StringUtl.containsIgnoreCase(query, "insert")){
 			close();
 			throw new SQLException("Error in QUERY. The ADD Method is only used when inserting a new record on a table.");
 		}
-		
+
 		int pk = -1;
-		
+
 		if (parameters.size() > 0 && buildAddQuery){
-			
+
 			StringBuilder tempQuery = new StringBuilder(query);	
-			
+
 			boolean first = true;
 			for(String column : parameters.keySet()){
 				if (first){
@@ -479,7 +534,7 @@ public class DBConnection {
 				}
 			}
 			tempQuery.append( " ) ");
-			
+
 			first = true;
 			for(String column : parameters.keySet()){
 				if (first){
@@ -491,10 +546,10 @@ public class DBConnection {
 				}
 			}
 			tempQuery.append( " ) ");
-		
+
 			query = tempQuery.toString();
 		}
-				
+
 		buildStatement(QueryType.INSERT);
 
 		pstmt.executeUpdate();
@@ -553,7 +608,7 @@ public class DBConnection {
 			}
 
 			buildStatement(QueryType.SELECT);
-			
+
 			addBatchfirstValue = false;
 		}
 		else{
@@ -565,7 +620,7 @@ public class DBConnection {
 		//reset values
 		parameters =  new LinkedHashMap<String, Object>();
 	}
-	
+
 	public void executeBatchQuery() throws SQLException{
 		if (pstmt != null){
 			pstmt.executeBatch();
@@ -575,9 +630,9 @@ public class DBConnection {
 			throw new SQLException("Prepared statement null");
 		}
 	}
-	
-	
-	
+
+
+
 	public String returnQuery(){
 		return this.query;
 	}
@@ -596,7 +651,7 @@ public class DBConnection {
 	 * @throws SQLException
 	 */
 	public DBConnection addUpdWhereClause(String where,  Object ... values) throws SQLException{
-		
+
 		if (where == null || where.length() == 0){
 			close();
 			throw new SQLException("Please inlude where clause");
@@ -605,31 +660,31 @@ public class DBConnection {
 			close();
 			throw new SQLException("Please inlude WHERE in query. Query: " + where);
 		}		
-		
+
 		if (updateParam == null){
 			updateParam = new LinkedHashMap<String, Object>();
 		}
-		
+
 		whereStatment = " " + where;
-		
+
 		//get the parameters
 		int idx = 0;
 		for(String st : where.split(" ")){
-		    if(st.startsWith(":") && st.length() > 1){
-		    	String param = st.substring(1,st.length());
-		    	if (updateParam.containsKey(param) || parameters.containsKey(param)){
-		    		close();
-		    		throw new SQLException("More than 1 parameter of name: " + param + ". The parameter must be unique");
-		    	}
-		    	
-		    	try{
-		    		updateParam.put(param, values[idx]);
-			    	idx++;
-		    	}catch (IndexOutOfBoundsException ix){
-		    		close();
-		    		throw new SQLException("There are more parameters than values, please add equal values to the parameters");
-		    	}
-		    }
+			if(st.startsWith(":") && st.length() > 1){
+				String param = st.substring(1,st.length());
+				if (updateParam.containsKey(param) || parameters.containsKey(param)){
+					close();
+					throw new SQLException("More than 1 parameter of name: " + param + ". The parameter must be unique");
+				}
+
+				try{
+					updateParam.put(param, values[idx]);
+					idx++;
+				}catch (IndexOutOfBoundsException ix){
+					close();
+					throw new SQLException("There are more parameters than values, please add equal values to the parameters");
+				}
+			}
 		}		
 		return this;		
 	}
@@ -656,138 +711,147 @@ public class DBConnection {
 		parameters.clear();
 		parameters.putAll(orderedParam);		
 	}
-
+	private void init(){
+		//reset all other variables
+		query = "";
+		whereStatment = "";
+		parameters = null;
+		updateParam = null;
+		buildAddQuery = false; //specify if its the 1st time the addParamenter is used
+		buildUpdateQuery = false;
+		addBatchfirstValue = true;
+	}
 	public static void main(String args[]) throws SQLException{
-//		DBConnection db = new DBConnection("theUrl","theUserName","thePass",DbClass.H2);
+		//		DBConnection db = new DBConnection("theUrl","theUserName","thePass",DbClass.H2);
 
-//		//--> UPDATE
-//		System.out.println("\n -----------  UPDATE  --------------");
-//		String updateQuery = "UPDATE " + User.TBL_NAME + " SET " + User.LAST_NAME + " = :lstName WHERE id  = :userId" ;
-//
-//		db.createQuery(updateQuery)
-//		  .setParameter("userId", 2)
-//		  .setParameter("lstName", "MyFriendBob")
-//		  .update();
-//	
-////		add.append("INSERT INTO " + TBL_NAME);
-////		add.append( " ( " + USER_NAME + "," + PASSWORD + "," + FIRST_NAME + "," + LAST_NAME + "," + EMAIL + "," + LAST_LOGIN + "," + NBR_TRIES + "," + ACCESS +" ) " );
-////		add.append(" VALUES(?,?,?,?,?,?,?,?)");
-//				
-//		//--> ADDD  EXAMPLE 1
-//		System.out.println("\n -----------  Add example 1  --------------");
-//		String addQuery = "INSERT INTO " + User.TBL_NAME + " ( " + User.USER_NAME + " , " + User.PASSWORD + " , " + User.ACCESS + " ) VALUES (:userName, :password, :access)"; //example 1
-//		
-//		int pk = db.createQuery(addQuery)
-//				.setParameter("userName", "bob")
-//				.setParameter("password", "1234561")
-//				.setParameter("access", AccessEnum.ADMIN.name())
-//				.add();		
-//		System.out.println("PK: " + pk);
-//		
-//		//--> ADDD  EXAMPLE 2	
-//		System.out.println("\n -----------  ADD example 2  --------------");
-//		int pkKey = db.buildAddQuery(User.TBL_NAME)		
-//		  .setParameter(User.USER_NAME, "bobo")
-//		  .setParameter(User.PASSWORD, "12121")
-//		  .setParameter(User.ACCESS, AccessEnum.REGULAR.name())
-//		  .add();
-//		
-//		//--> SELECT Multiple entries
-//		//		String query = "SELECT id, " + User.USER_NAME + " FROM " + User.TBL_NAME + " where id > :bob2";
-//		System.out.println("\n -----------  Select  --------------");
-//		String query = "SELECT * FROM " + User.TBL_NAME + " where id > :bob2";
-//
-//		ResultSet rs = db.createQuery(query)
-//				.setParameter("bob2", 0)
-//				.getSelectResultSet();
-//
-//		if (rs != null){
-//
-//			while (rs.next()){
-//				User user = new User(rs);
-//				System.out.println("User : " + user);
-//			}
-//		}
-//		//--> DELETE
-//		System.out.println("\n -----------  Delete  --------------");
-//		String delete = "DELETE FROM " + User.TBL_NAME + " where id = :userId";
-//		db.createQuery(delete)
-//		.setParameter("userId", pkKey).delete();
-//		
-//		//--> SELECT Multiple entries	
-//		System.out.println("\n -----------  Select  --------------");
-//		String query2 = "SELECT * FROM " + User.TBL_NAME + " where id > :bob2";
-//
-//		ResultSet rs2 = db.createQuery(query2)
-//				.setParameter("bob2", 0)
-//				.getSelectResultSet();
-//
-//		if (rs2 != null){
-//
-//			while (rs2.next()){
-//				User user = new User(rs2);
-//				System.out.println("User : " + user);
-//			}
-//		}
-//			
-//		//New Update query
-//		System.out.println("\n -----------  NEW Update  --------------");
-//		db.buildUpdateQuery(User.TBL_NAME)
-//			.setParameter(User.EMAIL, "generic " + new Date().toString())
-//			.setParameter(User.NBR_TRIES, 22)			
-//			.addUpdWhereClause("WHERE "+ User.ID + " = :userId OR " + User.ID + " = :userId2 ", 2, 44)
-//			.update();
-//		
-//		
-//		System.out.println("\n -----------  Select  --------------");
-//		String query3 = "SELECT * FROM " + User.TBL_NAME + " where id > :bob2";
-//
-//		ResultSet rs3 = db.createQuery(query3)
-//				.setParameter("bob2", 0)
-//				.getSelectResultSet();
-//
-//		if (rs3 != null){
-//
-//			while (rs3.next()){
-//				User user = new User(rs3);
-//				System.out.println("User : " + user);
-//			}
-//		}
-		
+		//		//--> UPDATE
+		//		System.out.println("\n -----------  UPDATE  --------------");
+		//		String updateQuery = "UPDATE " + User.TBL_NAME + " SET " + User.LAST_NAME + " = :lstName WHERE id  = :userId" ;
+		//
+		//		db.createQuery(updateQuery)
+		//		  .setParameter("userId", 2)
+		//		  .setParameter("lstName", "MyFriendBob")
+		//		  .update();
+		//	
+		////		add.append("INSERT INTO " + TBL_NAME);
+		////		add.append( " ( " + USER_NAME + "," + PASSWORD + "," + FIRST_NAME + "," + LAST_NAME + "," + EMAIL + "," + LAST_LOGIN + "," + NBR_TRIES + "," + ACCESS +" ) " );
+		////		add.append(" VALUES(?,?,?,?,?,?,?,?)");
+		//				
+		//		//--> ADDD  EXAMPLE 1
+		//		System.out.println("\n -----------  Add example 1  --------------");
+		//		String addQuery = "INSERT INTO " + User.TBL_NAME + " ( " + User.USER_NAME + " , " + User.PASSWORD + " , " + User.ACCESS + " ) VALUES (:userName, :password, :access)"; //example 1
+		//		
+		//		int pk = db.createQuery(addQuery)
+		//				.setParameter("userName", "bob")
+		//				.setParameter("password", "1234561")
+		//				.setParameter("access", AccessEnum.ADMIN.name())
+		//				.add();		
+		//		System.out.println("PK: " + pk);
+		//		
+		//		//--> ADDD  EXAMPLE 2	
+		//		System.out.println("\n -----------  ADD example 2  --------------");
+		//		int pkKey = db.buildAddQuery(User.TBL_NAME)		
+		//		  .setParameter(User.USER_NAME, "bobo")
+		//		  .setParameter(User.PASSWORD, "12121")
+		//		  .setParameter(User.ACCESS, AccessEnum.REGULAR.name())
+		//		  .add();
+		//		
+		//		//--> SELECT Multiple entries
+		//		//		String query = "SELECT id, " + User.USER_NAME + " FROM " + User.TBL_NAME + " where id > :bob2";
+		//		System.out.println("\n -----------  Select  --------------");
+		//		String query = "SELECT * FROM " + User.TBL_NAME + " where id > :bob2";
+		//
+		//		ResultSet rs = db.createQuery(query)
+		//				.setParameter("bob2", 0)
+		//				.getSelectResultSet();
+		//
+		//		if (rs != null){
+		//
+		//			while (rs.next()){
+		//				User user = new User(rs);
+		//				System.out.println("User : " + user);
+		//			}
+		//		}
+		//		//--> DELETE
+		//		System.out.println("\n -----------  Delete  --------------");
+		//		String delete = "DELETE FROM " + User.TBL_NAME + " where id = :userId";
+		//		db.createQuery(delete)
+		//		.setParameter("userId", pkKey).delete();
+		//		
+		//		//--> SELECT Multiple entries	
+		//		System.out.println("\n -----------  Select  --------------");
+		//		String query2 = "SELECT * FROM " + User.TBL_NAME + " where id > :bob2";
+		//
+		//		ResultSet rs2 = db.createQuery(query2)
+		//				.setParameter("bob2", 0)
+		//				.getSelectResultSet();
+		//
+		//		if (rs2 != null){
+		//
+		//			while (rs2.next()){
+		//				User user = new User(rs2);
+		//				System.out.println("User : " + user);
+		//			}
+		//		}
+		//			
+		//		//New Update query
+		//		System.out.println("\n -----------  NEW Update  --------------");
+		//		db.buildUpdateQuery(User.TBL_NAME)
+		//			.setParameter(User.EMAIL, "generic " + new Date().toString())
+		//			.setParameter(User.NBR_TRIES, 22)			
+		//			.addUpdWhereClause("WHERE "+ User.ID + " = :userId OR " + User.ID + " = :userId2 ", 2, 44)
+		//			.update();
+		//		
+		//		
+		//		System.out.println("\n -----------  Select  --------------");
+		//		String query3 = "SELECT * FROM " + User.TBL_NAME + " where id > :bob2";
+		//
+		//		ResultSet rs3 = db.createQuery(query3)
+		//				.setParameter("bob2", 0)
+		//				.getSelectResultSet();
+		//
+		//		if (rs3 != null){
+		//
+		//			while (rs3.next()){
+		//				User user = new User(rs3);
+		//				System.out.println("User : " + user);
+		//			}
+		//		}
+
 		/////////Execute batch
-//		db.buildAddQuery(User.TBL_NAME);
-//		 
-//		for(int i = 0; i < 3 ; i ++){
-//			db.setParameter(User.USER_NAME, "bobo"+i)
-//			.setParameter(User.PASSWORD, "12121" + i)
-//			.setParameter(User.ACCESS, AccessEnum.REGULAR.name())
-//			.addBatch();
-//		}
-//		
-//		db.executeBatchQuery();
-		 
+		//		db.buildAddQuery(User.TBL_NAME);
+		//		 
+		//		for(int i = 0; i < 3 ; i ++){
+		//			db.setParameter(User.USER_NAME, "bobo"+i)
+		//			.setParameter(User.PASSWORD, "12121" + i)
+		//			.setParameter(User.ACCESS, AccessEnum.REGULAR.name())
+		//			.addBatch();
+		//		}
+		//		
+		//		db.executeBatchQuery();
+
 		//
 		//create table
 		//
-		
-//		List<ColumnType> columns = new ArrayList<ColumnType>();
-//		columns.add(new ColumnType("id", true).setPkCriteria(new PkCriteria().autoIncrement()));
-//		columns.add(new ColumnType("bob", false).Boolean());
-//		columns.add(new ColumnType("bob2", false).Boolean());
-//		columns.add(new ColumnType("bob3", false).Boolean());
-//	
-//		
-//		con.createTable("TBLtest", columns);
-		
-		
-		
-//		db.close();
+
+		//		List<ColumnType> columns = new ArrayList<ColumnType>();
+		//		columns.add(new ColumnType("id", true).setPkCriteria(new PkCriteria().autoIncrement()));
+		//		columns.add(new ColumnType("bob", false).Boolean());
+		//		columns.add(new ColumnType("bob2", false).Boolean());
+		//		columns.add(new ColumnType("bob3", false).Boolean());
+		//	
+		//		
+		//		con.createTable("TBLtest", columns);
+
+
+
+		//		db.close();
 
 	}
 	public Connection getConnection(){
 		return this.conn;		
 	}
-	
+
 	/**
 	 * The type of object is being added into the preference.
 	 */

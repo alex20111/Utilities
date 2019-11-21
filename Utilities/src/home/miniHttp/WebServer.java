@@ -18,7 +18,11 @@ import org.xml.sax.SAXException;
 
 public class WebServer extends NanoHTTPD{ 
 	private Map<String, HttpHandler> handlers = new HashMap<String, HttpHandler>();
+	private boolean sessionActive = false;
 	
+	public WebServer(int port) {
+		super(port);
+	}
 	public WebServer(int port, File rootDir) throws URISyntaxException {
 		super(port);
 		ServerConfig.setRootDir(rootDir);
@@ -72,16 +76,25 @@ public class WebServer extends NanoHTTPD{
 
 		start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
 	}
+	public void enableSessionManagement() {
+		sessionActive = true;
+	}
 	@Override
-	public synchronized Response serve(IHTTPSession session) {
+	public synchronized Response serve(IHTTPSession httpSession) {
 		Response resp = null;
 		try{	
-			String uri = session.getUri();
+			String uri = httpSession.getUri();
 			System.out.println( "URI: " + uri );
 			HttpHandler handler = handlers.get(uri);		
 			
 			boolean serve = canServe(uri, handler);//determine if it serve a webpage or just return null
 			if (serve) {
+				
+				Session session = null;
+				
+				if (sessionActive) {
+					session = SessionManager.findOrCreate(httpSession.getCookies());
+				}
 
 				if (handler == null){
 					//try to see if it's not a folder or file
@@ -95,8 +108,12 @@ public class WebServer extends NanoHTTPD{
 						return Response.newFixedLengthResponse(Status.NOT_FOUND,NanoHTTPD.MIME_HTML, "Error404, invalid request"); 
 					}
 				}
+				
+				if (session != null && sessionActive) {
+					handler.setSession(session);
+				}
 
-				resp = handler.handle(session);
+				resp = handler.handle(httpSession);
 				if (resp == null){
 					return Response.newFixedLengthResponse(Status.NOT_FOUND,NanoHTTPD.MIME_HTML, "Error 404,invalid request");
 				} 

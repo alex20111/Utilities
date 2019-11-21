@@ -11,29 +11,41 @@ import java.util.List;
 import java.util.Map;
 
 import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 
 public abstract class HttpBase implements HttpHandler {
 	private boolean parmsProcessed = false;
 	
-	private IHTTPSession session;
+	private IHTTPSession httpSession;
 	private Map<String, List<String>> params;	
 	private Map<String, String> files = new HashMap<String, String>(); // holder for uploaded files
+	private Session session;
 	
 	public HttpBase(){}
 	
 	public abstract void handleParameters( Map<String, List<String>> params);
 	public abstract Response handleRequest();
 	
-	public void session(IHTTPSession session){
-		this.session = session;
+	public void httpSession(IHTTPSession httpSession){
+		this.httpSession = httpSession;
 		this.parmsProcessed = false;
 	}
-	
+	@Override
+	public void setSession(Session session) {
+		this.session = session;
+	}
+	public Session getSession() {
+		if (session == null) {
+			throw new IllegalAccessError("Session was not activated at the start");
+		}
+		return session;
+	}
 	public Response handle(IHTTPSession session) {
-		this.session(session);
+		this.httpSession(session);
 		try {
 			getParameters();
 			handleParameters(params);
@@ -43,8 +55,8 @@ public abstract class HttpBase implements HttpHandler {
 		
 		return handleRequest();
 	}
-	public IHTTPSession getSession(){
-		return this.session;
+	public IHTTPSession getHttpSession(){
+		return this.httpSession;
 	}
 
 	public List<File> getWebPageOnDisk(String pageName){
@@ -80,17 +92,17 @@ public abstract class HttpBase implements HttpHandler {
 		
 		if (!parmsProcessed){
 			params = new HashMap<String, List<String>>();
-			Method method = session.getMethod();
+			Method method = httpSession.getMethod();
 			if (Method.PUT.equals(method) || Method.POST.equals(method)) {
 				files = new HashMap<String, String>();
-				session.parseBody(files);
+				httpSession.parseBody(files);
 				// get the POST body;
 				System.out.println("Files body: " + files);
 				// or you can access the POST request's parameters
-				params = session.getParameters();
+				params = httpSession.getParameters();
 
 			}else if(Method.GET.equals(method)){
-				params = session.getParameters();
+				params = httpSession.getParameters();
 			}
 			parmsProcessed = true;
 		}		
@@ -186,6 +198,12 @@ public abstract class HttpBase implements HttpHandler {
 		sb.append(message);
 		sb.append("</div>");
 		return sb.toString();
+	}
+	
+	public Response sendToLocationSameHost(String page) {
+		Response res = Response.newFixedLengthResponse(Status.REDIRECT, NanoHTTPD.MIME_HTML, "");
+		res.addHeader("Location", "http://" + getHttpSession().getRemoteHostName() + "/" + page);
+		return res;
 	}
 	
 }

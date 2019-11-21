@@ -13,8 +13,8 @@ public class FolderHandler extends HttpBase implements HttpHandler{
 	@Override
 	public Response handleRequest() {
 		
-		File file = new File(ServerConfig.getRootDir() + File.separator + getSession().getUri()); //path exists and its correct
-		String mime = NanoHTTPD.getMimeTypeForFile(getSession().getUri());
+		File file = new File(ServerConfig.getRootDir() + File.separator + getHttpSession().getUri()); //path exists and its correct
+		String mime = NanoHTTPD.getMimeTypeForFile(getHttpSession().getUri());
 		FileInputStream fis = null;
 		System.out.println("File Handler file exist: " + file + "  " + file.exists());
 		try{

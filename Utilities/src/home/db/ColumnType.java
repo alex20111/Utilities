@@ -55,7 +55,7 @@ public class ColumnType {
 	/*
 	 * Criteria for the primary key.. needs to be set id the pk is defined
 	 */
-	public ColumnType setPkCriteria(PkCriteria crt) throws IOException{
+	public ColumnType setPKCriteria(PkCriteria crt) throws IOException{
 		
 		this.pkCrit = crt;
 		return this;

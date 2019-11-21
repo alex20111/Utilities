@@ -13,7 +13,7 @@ import java.util.Map;
 public class ServerConfig {
 	
 	private static File rootDir = null;
-	private static String externalHtmlFolder = "/web";
+	private static String externalHtmlFolder = "";
 	
 	private ServerConfig() {}
 	

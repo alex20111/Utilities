@@ -15,6 +15,20 @@ import org.xml.sax.SAXException;
 
 public class BootstrapExample {
 
+	/**
+	 * Content layout file. contentlayout.xml  if using addexternalhtmlfolder
+	 * <base>
+		<page name="dashboard">
+			<page_part name="dashboard.html"/>
+			<page_part name="footer.html"/>		
+		</page>
+		<page name="alarmView">
+			<page_part name="dashboard.html"/>
+			<page_part name="footer.html"/>		
+		</page>
+	  </base>
+	  */
+	
 	//external html pages _
 	public static void main(String[] args) throws IOException, URISyntaxException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException, ParserConfigurationException, SAXException {
 		WebServer server = new WebServer(8080,new File( "/home/alex/git/Utilities/Utilities"));
