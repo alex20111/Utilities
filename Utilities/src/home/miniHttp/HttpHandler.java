@@ -6,4 +6,5 @@ import org.nanohttpd.protocols.http.response.Response;
 public interface HttpHandler{
 	public Response handle(IHTTPSession session);
 	public void setSession(Session session);
+	public void setCacheDisabled(boolean cacheDisabled);
 } 

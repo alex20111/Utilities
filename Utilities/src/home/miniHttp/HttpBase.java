@@ -24,6 +24,7 @@ public abstract class HttpBase implements HttpHandler {
 	private Map<String, List<String>> params;	
 	private Map<String, String> files = new HashMap<String, String>(); // holder for uploaded files
 	private Session session;
+	private boolean cacheDisabled = false;
 	
 	public HttpBase(){}
 	
@@ -38,6 +39,11 @@ public abstract class HttpBase implements HttpHandler {
 	public void setSession(Session session) {
 		this.session = session;
 	}
+	@Override
+	public void setCacheDisabled(boolean cacheDisabled) {
+		this.cacheDisabled = cacheDisabled;
+	}
+	
 	public Session getSession() {
 		if (session == null) {
 			throw new IllegalAccessError("Session was not activated at the start");
@@ -53,7 +59,15 @@ public abstract class HttpBase implements HttpHandler {
 			e.printStackTrace();
 		}
 		
-		return handleRequest();
+		Response res = null;
+		if (cacheDisabled) {
+			res = disableCaching(handleRequest());
+		}
+		else {
+			res = handleRequest();
+		}
+		
+		return res;
 	}
 	public IHTTPSession getHttpSession(){
 		return this.httpSession;
@@ -165,14 +179,11 @@ public abstract class HttpBase implements HttpHandler {
 							pathToDir += File.separatorChar;
 						}
 						
-//						System.out.println("Path to dir: " + pathToDir);
 						Path newFile = Paths.get(pathToDir  + realName);
 
-//						System.out.println("File exist1 : " + Files.exists(newFile));
 						Files.deleteIfExists(newFile);
 						Files.copy(tempFile, newFile);
 						
-//						System.out.println("File exist: " + Files.exists(newFile));
 
 					}else{
 						throw new IOException("CAN'T FIND FILE");
@@ -203,7 +214,17 @@ public abstract class HttpBase implements HttpHandler {
 	public Response sendToLocationSameHost(String page) {
 		Response res = Response.newFixedLengthResponse(Status.REDIRECT, NanoHTTPD.MIME_HTML, "");
 		res.addHeader("Location", "http://" + getHttpSession().getRemoteHostName() + "/" + page);
+//		res.addHeader("Cache-Control", "no-store");
 		return res;
+	}
+	
+	private Response disableCaching(Response response) {
+//		System.out.println("No cache");
+		response.addHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.addHeader("Pragma", "no-cache"); // HTTP 1.0.
+		response.addHeader("Expires", "0"); // Proxies.
+		
+		return response;
 	}
 	
 }

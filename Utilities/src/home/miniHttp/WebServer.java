@@ -10,7 +10,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.xml.sax.SAXException;
@@ -19,6 +18,7 @@ import org.xml.sax.SAXException;
 public class WebServer extends NanoHTTPD{ 
 	private Map<String, HttpHandler> handlers = new HashMap<String, HttpHandler>();
 	private boolean sessionActive = false;
+	private boolean disableCache = false;
 	
 	public WebServer(int port) {
 		super(port);
@@ -76,23 +76,29 @@ public class WebServer extends NanoHTTPD{
 
 		start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
 	}
+	/**
+	 * Enable session management to keep information in the session using cookies.
+	 */
 	public void enableSessionManagement() {
 		sessionActive = true;
+	}
+	public void disableBrowserCache(boolean disable) {
+		disableCache = disable;
 	}
 	@Override
 	public synchronized Response serve(IHTTPSession httpSession) {
 		Response resp = null;
 		try{	
 			String uri = httpSession.getUri();
-			System.out.println( "URI: " + uri );
+//			System.out.println( "URI: " + uri + "  Method: " + httpSession.getMethod());
 			HttpHandler handler = handlers.get(uri);		
 			
 			boolean serve = canServe(uri, handler);//determine if it serve a webpage or just return null
-			if (serve) {
+			if (serve) {				
 				
 				Session session = null;
 				
-				if (sessionActive) {
+				if (sessionActive) { 
 					session = SessionManager.findOrCreate(httpSession.getCookies());
 				}
 
@@ -112,6 +118,10 @@ public class WebServer extends NanoHTTPD{
 				if (session != null && sessionActive) {
 					handler.setSession(session);
 				}
+				if (handler != null) {
+					handler.setCacheDisabled(disableCache);
+				}
+				
 
 				resp = handler.handle(httpSession);
 				if (resp == null){
@@ -126,7 +136,7 @@ public class WebServer extends NanoHTTPD{
 	}
 	private boolean canServe(String uri, HttpHandler handler) {
 		if ("/favicon.ico".equals(uri) && handler == null ) {
-			return false;
+			return true;
 		}
 		return true;
 	}
