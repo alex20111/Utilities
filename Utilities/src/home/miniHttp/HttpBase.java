@@ -111,7 +111,7 @@ public abstract class HttpBase implements HttpHandler {
 				files = new HashMap<String, String>();
 				httpSession.parseBody(files);
 				// get the POST body;
-				System.out.println("Files body: " + files);
+//				System.out.println("Files body: " + files);
 				// or you can access the POST request's parameters
 				params = httpSession.getParameters();
 
@@ -213,7 +213,8 @@ public abstract class HttpBase implements HttpHandler {
 	
 	public Response sendToLocationSameHost(String page) {
 		Response res = Response.newFixedLengthResponse(Status.REDIRECT, NanoHTTPD.MIME_HTML, "");
-		res.addHeader("Location", "http://" + getHttpSession().getRemoteHostName() + "/" + page);
+//		res.addHeader("Location", "http://" + getHttpSession().getRemoteHostName() + "/" + page);
+		res.addHeader("Location", "/" + page);
 //		res.addHeader("Cache-Control", "no-store");
 		return res;
 	}

@@ -90,6 +90,7 @@ public class WebServer extends NanoHTTPD{
 		Response resp = null;
 		try{	
 			String uri = httpSession.getUri();
+//			System.out.println("headers: " + httpSession.getHeaders());
 //			System.out.println( "URI: " + uri + "  Method: " + httpSession.getMethod());
 			HttpHandler handler = handlers.get(uri);		
 			
@@ -107,7 +108,7 @@ public class WebServer extends NanoHTTPD{
 					if (uri != null && uri.length() > 0){
 						handler = handlers.get(uri.substring(0, uri.lastIndexOf("/")));
 						if (handler == null){ 
-							System.out.println("handlder null");
+//							System.out.println("handlder null");
 							return Response.newFixedLengthResponse("Error404, invalid request");
 						} 
 					}else{ 
