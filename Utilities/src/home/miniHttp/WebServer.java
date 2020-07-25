@@ -97,18 +97,20 @@ public class WebServer extends NanoHTTPD{
 			boolean serve = canServe(uri, handler);//determine if it serve a webpage or just return null
 			if (serve) {				
 				
+//				System.out.println("can serve: " + serve);
+				
 				Session session = null;
 				
 				if (sessionActive) { 
 					session = SessionManager.findOrCreate(httpSession.getCookies());
 				}
-
+//				System.out.println("Handler1: " + handler);
 				if (handler == null){
 					//try to see if it's not a folder or file
 					if (uri != null && uri.length() > 0){
 						handler = handlers.get(uri.substring(0, uri.lastIndexOf("/")));
 						if (handler == null){ 
-//							System.out.println("handlder null");
+//						System.out.println("handlder null");
 							return Response.newFixedLengthResponse("Error404, invalid request");
 						} 
 					}else{ 

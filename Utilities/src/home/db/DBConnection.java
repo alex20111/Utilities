@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,6 +33,7 @@ public class DBConnection {
 	private Connection conn 	= null;
 	private PreparedStatement pstmt 	= null;
 	private ResultSet rs 			= null;
+	private DbClass dbClass = null;
 
 	private String query = "";
 	private String whereStatment = "";
@@ -74,6 +76,7 @@ public class DBConnection {
 	 */
 	public DBConnection(Database db) throws SQLException, ClassNotFoundException {
 		this.conn = db.build();
+		this.dbClass = db.getDbClass();
 	}
 	/**
 	 * constructor
@@ -91,6 +94,7 @@ public class DBConnection {
 	public DBConnection(String url, String dbUser, String dbPassword, DbClass dbClass) throws SQLException, ClassNotFoundException  {
 		Class.forName(dbClass.getDriver());
 		this.conn = DriverManager.getConnection(url, dbUser, dbPassword);
+		this.dbClass = dbClass;
 
 	}
 	/***
@@ -182,6 +186,8 @@ public class DBConnection {
 
 			if (columns != null && !columns.isEmpty())
 			{
+				String pkName = "";
+				
 				parameters = new LinkedHashMap<String, Object>();
 
 				query = "CREATE TABLE " + tableName + " (";
@@ -194,11 +200,22 @@ public class DBConnection {
 					}else{
 						query += " , " + ct.value();
 					}
+					
+					if (ct.isPk()) {
+						pkName = ct.getColumnName();
+					}
 				}
 
+				if (DbClass.Mysql == dbClass) {
+					query += ", PRIMARY KEY (" + pkName + ")";
+				}
+				
 				query += " ) ";
 
 				buildStatement(QueryType.SELECT);
+//				
+//				System.out.println("Query:  " + query);
+//				System.out.println("Pstmt: " + pstmt.toString());
 
 				pstmt.executeUpdate();
 			}
@@ -280,12 +297,29 @@ public class DBConnection {
 
 		return this;
 	}
+	/**
+	 * Verify if the table exist. 
+	 * 
+	 * @param tableName - Table name
+	 * @return
+	 * @throws SQLException
+	 */
 	public boolean verifyIfTableExist(String tableName) throws SQLException{
 		init();
-		selectQuery("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME ='"+tableName+"'");
-		ResultSet rs1 = getSelectResultSet();
-		boolean exist = rs1.next();
-		return exist;
+		
+		DatabaseMetaData md = getConnection().getMetaData();
+		ResultSet rs = md.getTables(null, null, tableName.toUpperCase(), null);
+		
+		if (rs.next()) {
+			return true;
+		}
+		//if not found in upper case.. look in lower case
+		rs = md.getTables(null, null, tableName.toLowerCase(), null);
+		if (rs.next()) {
+			return true;
+		}
+
+		return false;
 	}
 	/**
 	 * Internal to the db connection .
@@ -720,6 +754,7 @@ public class DBConnection {
 		buildAddQuery = false; //specify if its the 1st time the addParamenter is used
 		buildUpdateQuery = false;
 		addBatchfirstValue = true;
+		pstmt = null;
 	}
 	public static void main(String args[]) throws SQLException{
 		//		DBConnection db = new DBConnection("theUrl","theUserName","thePass",DbClass.H2);

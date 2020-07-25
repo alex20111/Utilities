@@ -71,10 +71,18 @@ public class ColumnType {
 			return name + " " + type + " " + pkCrit.value();
 		}
 		return name + " " + type;
+	
+	}
+	public boolean isPk() {
+		return this.primaryKey;
+	}
+	public String getColumnName() {
+		return this.name;
 	}
 	private void checkIfTypeIsSet() throws IOException {
 		if (this.type.length() > 0) {
 			throw new IOException("you can only set 1 type");
 		}
 	}
+	
 }
