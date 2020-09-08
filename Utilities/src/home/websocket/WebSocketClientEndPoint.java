@@ -2,10 +2,12 @@ package home.websocket;
 
 
 
+import java.io.IOException;
 import java.net.URI;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
+import javax.websocket.DeploymentException;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -22,15 +24,16 @@ public class WebSocketClientEndPoint {
 
     Session userSession = null;
     private MessageHandler messageHandler;
+    private WebSocketContainer container ;
+        
+    private URI endpointURI;
+    
 
     public WebSocketClientEndPoint(URI endpointURI, long containerTimeout) {
         try {
-            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-//            Session session = container.connectToServer(this,endpointURI);
+        	this.endpointURI = endpointURI;
+        	 container = ContainerProvider.getWebSocketContainer();
             container.setDefaultMaxSessionIdleTimeout(containerTimeout);
-            container.connectToServer(this, endpointURI);
-           
-//            container.time(containerTimeout);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -71,6 +74,23 @@ public class WebSocketClientEndPoint {
         }
     }
 
+    public void connect() throws WebSocketException {
+        try {
+        	this.userSession = container.connectToServer(this, endpointURI);
+			
+		} catch (DeploymentException | IOException e) {
+			throw new WebSocketException("Error in connect", e);
+
+		}
+
+    }
+    public void closeConnection() throws IOException {
+    	this.userSession.close();
+    }
+    
+    public boolean isConnectionAlive() {
+    	return this.userSession != null;
+    }
     /**
      * register message handler
      *

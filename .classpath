@@ -8,5 +8,10 @@
 	<classpathentry kind="lib" path="lib/nanohttpd-2.3.2.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
 	<classpathentry kind="lib" path="C:/Users/ADMIN/.m2/repository/javax/websocket/javax.websocket-api/1.1/javax.websocket-api-1.1.jar"/>
+	<classpathentry kind="lib" path="C:/dev/jetty/jetty-distribution-9.4.31.v20200723/lib/websocket/websocket-api-9.4.31.v20200723.jar"/>
+	<classpathentry kind="lib" path="C:/dev/jetty/jetty-distribution-9.4.31.v20200723/lib/websocket/websocket-client-9.4.31.v20200723.jar"/>
+	<classpathentry kind="lib" path="C:/dev/jetty/jetty-distribution-9.4.31.v20200723/lib/websocket/websocket-common-9.4.31.v20200723.jar"/>
+	<classpathentry kind="lib" path="C:/dev/jetty/jetty-distribution-9.4.31.v20200723/lib/websocket/websocket-server-9.4.31.v20200723.jar"/>
+	<classpathentry kind="lib" path="C:/dev/jetty/jetty-distribution-9.4.31.v20200723/lib/websocket/websocket-servlet-9.4.31.v20200723.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

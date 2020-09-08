@@ -1,15 +1,16 @@
 package home.websocket;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 
 public class ClientExample {
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, WebSocketException, IOException {
 		 try {
              // open websocket
-             final WebSocketClientEndPoint clientEndPoint = new WebSocketClientEndPoint(new URI("ws://localhost:8081/events/"), 15000);
+             final WebSocketClientEndPoint clientEndPoint = new WebSocketClientEndPoint(new URI("ws://localhost:8081/events/"), 60000);
 
              // add listener
              clientEndPoint.addMessageHandler(new WebSocketClientEndPoint.MessageHandler() {
@@ -18,6 +19,9 @@ public class ClientExample {
                  }
              });
 
+             //connect
+             clientEndPoint.connect();
+             
              // send message to websocket
              System.out.println("Sent 1");
              clientEndPoint.sendMessage("{'operation': 1,'userName':'ok_btccny_ticker'}");
@@ -30,11 +34,17 @@ public class ClientExample {
 				public void run() {
 					  while (!Thread.currentThread().isInterrupted()) {
 		            	    try {
+		            	    	if (clientEndPoint.isConnectionAlive()) {
 		            	    	System.out.println("Sent 2");
 		            	    	clientEndPoint.sendMessage("{'operation': 1,'userName':'ok_btccny_ticker'}");
 		            	        Thread.sleep(10000);
-		            	    } catch (InterruptedException ex) {
+		            	    	}else {
+		            	    		System.out.println("re connecting");
+		            	    		clientEndPoint.connect();
+		            	    	}
+		            	    } catch (InterruptedException | WebSocketException ex) {
 		            	        Thread.currentThread().interrupt();
+		            	        ex.printStackTrace();
 		            	    }
 		            	}
 				}
@@ -46,7 +56,8 @@ public class ClientExample {
              clientEndPoint.sendMessage("{'operation': 1,'userName':'ok_btccny_ticker22'}");
            
              
-             System.out.println("Out close --");
+             System.out.println("Out close -conn-");
+             clientEndPoint.closeConnection();
 
          } catch (URISyntaxException ex) {
              System.err.println("URISyntaxException exception: " + ex.getMessage());
