@@ -1,11 +1,7 @@
 package home.ipChecker;
 
-import home.exception.LoggerException;
-import home.logger.CustomLogger;
-
 import java.io.IOException;
 
-import org.apache.log4j.Level;
 
 public class Test {
 
@@ -14,9 +10,9 @@ public class Test {
 	 * @throws IOException 
 	 * @throws LoggerException 
 	 */
-	public static void main(String[] args) throws IOException, LoggerException {		
+	public static void main(String[] args) throws IOException {		
 
-		CustomLogger.createStaticFileLogger("verifyIp", "externalIp.log", Level.INFO, Level.FATAL);
+//		CustomLogger.createStaticFileLogger("verifyIp", "externalIp.log", Level.INFO, Level.FATAL);.
 		
 		VerifyExternalIp ip = new VerifyExternalIp();
 		ip.setHost("https://api.ipify.org/")

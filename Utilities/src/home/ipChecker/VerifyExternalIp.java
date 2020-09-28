@@ -3,10 +3,8 @@ package home.ipChecker;
 import home.email.EmailMessage;
 import home.email.EmailType;
 import home.email.SendMail;
-import home.exception.LoggerException;
 import home.fileutils.FileUtils;
 import home.inet.Connect;
-import home.logger.CustomLogger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,12 +19,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 public class VerifyExternalIp {
 
-	Logger log = Logger.getLogger(VerifyExternalIp.class);
 
 	private static String HOST 				= "hostsite";
 	private static String INTERVAL 			= "interval";
@@ -60,14 +55,14 @@ public class VerifyExternalIp {
 		this.host = host;
 	}
 
-	public void verifyIp() throws IOException, LoggerException{
+	public void verifyIp() throws IOException{
 
 
 		//create custom log file.
-		log.info("\n ------------starting program----------- ");
-		if (host == null || host.length() == 0){
-			log.warn("No host defined , using host : " + host);
-		}
+//		log.info("\n ------------starting program----------- ");
+//		if (host == null || host.length() == 0){
+//			log.warn("No host defined , using host : " + host);
+//		}
 
 		con = new Connect(host);			
 
@@ -86,13 +81,13 @@ public class VerifyExternalIp {
 
 		if (result.length() > 0 ){
 			currentIp = result;
-			log.info("Current IP: " + currentIp);	
+//			log.info("Current IP: " + currentIp);	
 
 			if(interval > 0 ){
 				//start loop
 				final long delay = interval * 60 * 60 * 1000;
 //				final long delay = interval * 1000;
-				log.info("Starting interval with a delay of: " + delay + " in mill");	
+//				log.info("Starting interval with a delay of: " + delay + " in mill");	
 
 				new Thread(new Runnable(){
 					@Override
@@ -100,7 +95,7 @@ public class VerifyExternalIp {
 						while(true){
 							try {							
 								Thread.sleep(delay);
-								log.info("Woke up, Checking ip");
+//								log.info("Woke up, Checking ip");
 
 								String result = "";
 								if (proxy != null){								
@@ -110,7 +105,7 @@ public class VerifyExternalIp {
 								}
 
 								if (!currentIp.equals(result)){
-									log.info("Ip not the same as the original IP. Orig: " + currentIp + " new ip: " + result);
+//									log.info("Ip not the same as the original IP. Orig: " + currentIp + " new ip: " + result);
 									String event = new Date() + "Ip address has changed from " + currentIp + " to " + result;									
 									fireEvent(event,result,  true);
 									//send e-mail if any
@@ -123,9 +118,11 @@ public class VerifyExternalIp {
 								}
 							} catch (InterruptedException e) {}
 							catch (IOException e) {
-								log.error("IOException in thread. Continuing " , e);
-							} catch (Exception e) {									
-								log.error("Exception in thread. Continuing" , e);
+								e.printStackTrace();
+//								log.error("IOException in thread. Continuing " , e);
+							} catch (Exception e) {		
+								e.printStackTrace();
+//								log.error("Exception in thread. Continuing" , e);
 							}
 						}
 					}
@@ -154,7 +151,7 @@ public class VerifyExternalIp {
 			sb.append("\n" + key + ": " + value );
 		}
 		System.out.println(sb.toString());
-		log.info(sb.toString() );
+//		log.info(sb.toString() );
 
 	}
 	private void sendEmail(String ip) throws Exception{
@@ -238,11 +235,10 @@ public class VerifyExternalIp {
 	 * @throws FileNotFoundException 
 	 * @throws LoggerException 
 	 */
-	public static void main(String[] args) throws FileNotFoundException, IOException, LoggerException {
+	public static void main(String[] args) throws FileNotFoundException, IOException {
 		System.out.println("Starting....");
 		System.out.println("All information will be through the externalIp.log");
 
-		CustomLogger.createStaticFileLogger("externalIp", "externalIp.log", Level.INFO, Level.FATAL);
 
 		File configFile = new File("ipConfig.cfg");
 

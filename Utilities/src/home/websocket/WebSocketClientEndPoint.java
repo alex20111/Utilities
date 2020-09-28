@@ -4,6 +4,8 @@ package home.websocket;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
@@ -109,6 +111,9 @@ public class WebSocketClientEndPoint {
         this.userSession.getAsyncRemote().sendText(message);
     }
 
+    public void sendPing() throws IllegalArgumentException, IOException {
+    	this.userSession.getAsyncRemote().sendPing(ByteBuffer.wrap("ping message server".getBytes()));
+    }
     /**
      * Message handler.
      *
