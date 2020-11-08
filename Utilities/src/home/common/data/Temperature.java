@@ -3,10 +3,8 @@ package home.common.data;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Date;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,7 +182,7 @@ public class Temperature {
 		
 		//AA, BB and POOL are grandfather..  get the new sensor name and exclude AA, BB, Pool
 		public static List<TempRecName> getNewSensors(){
-			return Arrays.stream(TempRecName.values()).filter(r -> r != TempRecName.AA || r != TempRecName.BB || r != TempRecName.pool).collect(Collectors.toList());
+			return Arrays.stream(TempRecName.values()).filter(r -> r != TempRecName.AA && r != TempRecName.BB && r != TempRecName.pool).collect(Collectors.toList());
 		}
 	}
 }

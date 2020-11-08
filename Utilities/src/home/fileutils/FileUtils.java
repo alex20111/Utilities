@@ -379,7 +379,7 @@ public class FileUtils
 	 * @param totalBytes
 	 * @return
 	 */
-	public static String fileSize(long totalBytes)
+	public static String fileSizePretty(long totalBytes)
 	{
 		
 		int divisions = 0;
@@ -412,6 +412,29 @@ public class FileUtils
 		}
 			
 		return sb.toString();
+	}
+	public static double fileSizeRaw(long totalBytes, FileSize formatted)
+	{
+		
+//		int divisions = 0;
+		double size = totalBytes;
+		
+		if (formatted == FileSize.BYTES) {
+			return size;
+		}else if(formatted == FileSize.KB) {
+			return size / 1024;
+		}else if(formatted == FileSize.MB) {
+			return size / 1024 / 1024;
+		}else if(formatted == FileSize.GB) {
+			return size / 1024 / 1024 / 1024;
+		}else if(formatted == FileSize.TB) {
+			return size / 1024 / 1024 / 1024 / 1024;
+		}else if(formatted == FileSize.PB) {
+			return size / 1024 / 1024 / 1024 / 1024 / 1024;
+		}
+		return 0.0;
+		
+
 	}
 	/**
 	 * read a string randomly starting from a specified position.
@@ -518,3 +541,6 @@ public class FileUtils
 	    reset();
 	  }
 	}
+ enum FileSize{
+	 BYTES, KB, MB, GB, TB, PB 
+ }

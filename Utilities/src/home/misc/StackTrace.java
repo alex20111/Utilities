@@ -1,11 +1,10 @@
 package home.misc;
 
 public class StackTrace {
-	
+
 	public static String displayStackTrace(Exception e){
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append("---------------Stack Trace ----------------\n");
+
+		StringBuilder sb = new StringBuilder();		
 		sb.append(e.getMessage() + "\n");
 		for (StackTraceElement element : e.getStackTrace())
 		{
@@ -14,11 +13,10 @@ public class StackTrace {
 		}
 		return sb.toString();
 	}
-	
-public static String displayStackTrace(Throwable e){
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append("---------------Stack Trace ----------------\n");
+
+	public static String displayStackTrace(Throwable e){
+
+		StringBuilder sb = new StringBuilder();		
 		sb.append(e.getMessage() + "\n");
 		for (StackTraceElement element : e.getStackTrace())
 		{

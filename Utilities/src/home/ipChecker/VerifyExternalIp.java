@@ -2,7 +2,7 @@ package home.ipChecker;
 
 import home.email.EmailMessage;
 import home.email.EmailType;
-import home.email.SendMail;
+import home.email.GoogleMail;
 import home.fileutils.FileUtils;
 import home.inet.Connect;
 
@@ -165,7 +165,9 @@ public class VerifyExternalIp {
 		email.setMessageBody("Your external ip address has changed from : " + currentIp + " To : " + ip);
 		email.setTo(emailAddress);
 		email.setFrom("Your_Friendly_ip");
-		SendMail.sendGoogleMail("alex.mailservice1@gmail.com", emailPass, email, EmailType.text);
+		GoogleMail gm = new GoogleMail();
+		gm.SendTLSSecure("alex.mailservice1@gmail.com", emailPass, email, EmailType.text);
+//		SendMail.sendGoogleMail("alex.mailservice1@gmail.com", emailPass, email, EmailType.text);
 	}
 	/**
 	 * Host to go and check the IP. It needs to return a text and not a html document.

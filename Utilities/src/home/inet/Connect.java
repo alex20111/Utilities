@@ -157,29 +157,6 @@ public class Connect
 	 */
 	public Connect connectToUrlUsingPOST(Map<String, String> paramNamesValues) throws MalformedURLException, IOException
 	{
-		return connectToUrlUsingPOST( paramNamesValues,  null);
-	}
-	/**
-	 * send post message with parameters.  The default Charset is UTF-8
-	 * 
-	 * @param paramNamesValues
-	 * 			- Parameters in a map. example: paramNamesValues.put(param, value); http://www.bla.com
-	 * @param Proxy
-	 * 			- The proxy for the call
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 */
-	public Connect connectToUrlUsingPOST(Map<String, String> paramNamesValues, Proxy proxy) throws MalformedURLException, IOException
-	{		
-		if (this.url == null || this.url.toString().length() == 0)
-		{
-			throw new MalformedURLException("Url is empty, please use url(string) or toUrl(string) to create a new URL");
-		}		
-
-		if (this.charSet == null || this.charSet.length() == 0){
-			this.charSet = "UTF-8";
-		}
-
 		StringBuilder queryUrl = new StringBuilder();
 
 		if (paramNamesValues != null){
@@ -191,6 +168,38 @@ public class Connect
 				queryUrl.append(URLEncoder.encode(param.getKey(), this.charSet) + "=" + URLEncoder.encode(param.getValue(), this.charSet));
 			}	
 		}
+		
+		return POST( queryUrl.toString(), ContentType.DEFAULT_POST,  null);
+	}
+	/*
+	 * Let the user decide of the type. 
+	 * 
+	 */
+	public Connect connectToUrlUsingPOST(String data, ContentType type) throws MalformedURLException, IOException
+	{
+		return POST(  data, type,  null);
+	}
+	/**
+	 * send post message with parameters.  The default Charset is UTF-8
+	 * 
+	 * @param paramNamesValues
+	 * 			- Parameters in a map. example: paramNamesValues.put(param, value); http://www.bla.com
+	 * @param Proxy
+	 * 			- The proxy for the call
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
+	private Connect POST(String queryUrl ,ContentType type,  Proxy proxy) throws MalformedURLException, IOException
+	{		
+		if (this.url == null || this.url.toString().length() == 0)
+		{
+			throw new MalformedURLException("Url is empty, please use url(string) or toUrl(string) to create a new URL");
+		}		
+
+		if (this.charSet == null || this.charSet.length() == 0){
+			this.charSet = "UTF-8";
+		}
+		
 		conn = null;
 
 		if (proxy != null)
@@ -211,7 +220,7 @@ public class Connect
 		conn.setRequestMethod("POST");
 		conn.setDoOutput(true); // Triggers POST.
 		conn.setRequestProperty("Accept-Charset", this.charSet);
-		conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + this.charSet);
+		conn.setRequestProperty("Content-Type", type.getTypeText() + ";charset=" + this.charSet);
 		conn.setRequestProperty("Content-Length", String.valueOf(contentBytes.length));
 		conn.setRequestProperty("User-Agent","Mozilla/5.0");
 
