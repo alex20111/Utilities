@@ -27,7 +27,7 @@ public class RemoteLogImpl {
 	
 	private RemoteLogLevel  level = RemoteLogLevel.DEBUG;
 	
-	private boolean loggerInit = false;
+	private LogServerStatus serverStatus = LogServerStatus.NOT_INITIALIZED;
 	
 	private Gson gson = new Gson();
 
@@ -52,29 +52,34 @@ public class RemoteLogImpl {
 		return new RemoteLogMaster(clazz);
 	}
 	
-	protected void logInit() throws IOException, InvalidParameterException {
-		Connect con = new Connect(serverUrl+logInitUrl+"/" + logFileName + "/" + this.logOption.name());
+	protected synchronized void logInit() {
+		try {
+			Connect con = new Connect(serverUrl+logInitUrl+"/" + logFileName + "/" + this.logOption.name());
 
-		con.connectToUrlUsingGET();
-		String result = con.getResultAsStr();
+			con.connectToUrlUsingGET();
+			String result = con.getResultAsStr();
 
-//		System.out.println("Result: " + result);
-		if (result.contains("FileName")) {
-			//get new filename
-			String fileName = result.substring(result.indexOf(":") + 2, result.indexOf(",") - 1);
-//			System.out.println("resultfile: " + fileName);
-			this.logFileName = fileName;
-			loggerInit = true;
-		}else {
-			throw new InvalidParameterException("Error while requesting filename. " + result);	
+			//		System.out.println("Result: " + result);
+			if (result.contains("FileName")) {
+				//get new filename
+				String fileName = result.substring(result.indexOf(":") + 2, result.indexOf(",") - 1);
+				//			System.out.println("resultfile: " + fileName);
+				this.logFileName = fileName;
+				serverStatus = LogServerStatus.READY;
+			}else {
+				throw new InvalidParameterException("Error while requesting filename. " + result);	
+			}
+
+			con.disconnect();	
+		}catch (Exception ex) {
+			ex.printStackTrace();
+			serverStatus = LogServerStatus.NOT_READY;
 		}
-
-		con.disconnect();		
 
 	}
 
 	protected synchronized void callServerToLog(LogMessage message) throws IOException {
-
+		
 		RemoteLogLevel lvl = RemoteLogLevel.valueOf(message.getLevel());
 
 
@@ -103,14 +108,11 @@ public class RemoteLogImpl {
 	 * @return
 	 */
 	protected String getInitFileName() {
-		if (this.loggerInit) {
+		if (this.serverStatus == LogServerStatus.READY) {
 			return this.logFileName;
 		}
 		
 		return null;
-	}
-	protected boolean isLoggerInitialized() {
-		return this.loggerInit;
 	}
 	public static void setLogFileName(String fileName) {
 		RemoteLogImpl.getInstance().logFileName = fileName; 
@@ -120,5 +122,15 @@ public class RemoteLogImpl {
 	}
 	public static void setLogOption(LogOption option) {
 		RemoteLogImpl.getInstance().logOption = option; 
+	}
+
+	protected LogServerStatus getServerStatus() {
+		return serverStatus;
+	}
+	protected void setServerStatus(LogServerStatus stat) {
+		this.serverStatus = stat;
+	}
+	protected boolean ready() {
+		return this.serverStatus == LogServerStatus.READY;
 	}
 }
