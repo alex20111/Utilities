@@ -7,7 +7,7 @@ public class TestSendMail {
 		EmailMessage em = new EmailMessage();
 		em.setSubject("Test trest 1");
 		em.setMessageBody("This is a test of the voice communication system");
-		em.setTo("alex.boudreault@gmail.com");
+		em.setTo("8199218355@pcs.rogers.com");
 		em.setFrom("Alex@test.com");
 		
 		

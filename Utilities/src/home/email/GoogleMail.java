@@ -80,15 +80,7 @@ public class GoogleMail
 		try {
 			mail.setSession(session);
 
-//			Message message = new MimeMessage(session);
-//			message.setFrom(new InternetAddress("from@gmail.com"));
-//			message.setRecipients(
-//					Message.RecipientType.TO,
-//					InternetAddress.parse("to_username_a@gmail.com, to_username_b@yahoo.com")
-//					);
-//			message.setSubject("Testing Gmail TLS");
-//			message.setText("Dear Mail Crawler,"
-//					+ "\n\n Please do not spam my email!");
+
 
 			Transport.send(mail.getEmail(EmailType.text));
 

@@ -12,6 +12,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -401,6 +404,11 @@ public class DBConnection {
 						pstmt.setFloat(idx, (Float)value);
 					}else if(value instanceof Date){
 						pstmt.setTimestamp(idx , new java.sql.Timestamp(((Date) value).getTime()));
+					}else if(value instanceof Timestamp){
+						pstmt.setTimestamp(idx , (Timestamp) value);
+					}else if(value instanceof LocalDateTime){
+						LocalDateTime dateTime = (LocalDateTime)value;
+						pstmt.setTimestamp(idx , Timestamp.valueOf( dateTime ) );
 					}else if(value instanceof Long){
 						pstmt.setLong(idx, (Long)value);
 					}else if(value instanceof Boolean){

@@ -28,10 +28,11 @@ public class Temperature {
 	private  String tmpPoolUpdDt = "11:45am";
 	
 	
-	private Map<TempRecName, String> tempMap = new HashMap<>();
+	private Map<TempRecName, String> tempMap = new HashMap<>();// new temperature values
 	private Map<TempRecName, String> tempDateMap = new HashMap<>();
 	
-	//TODO temperature others? in a map? or re-define to have a list of object?  or keep this as legacy and create a new list of object for the new added temperature.
+	private Map<String, String> jsonData;
+	
 
 	public Temperature() {}
 
@@ -158,6 +159,14 @@ public class Temperature {
 		return null;	
 	}	
 	
+	public Map<String, String> getJsonData() {
+		return jsonData;
+	}
+
+	public void setJsonData(Map<String, String> jsonData) {
+		this.jsonData = jsonData;
+	}
+
 	@Override
 	public String toString() {
 		return "Temperature [tempSun=" + tempSun + ", tmpSunUpdDt=" + tmpSunUpdDt + ", tempShade=" + tempShade
